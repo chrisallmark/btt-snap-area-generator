@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2018"],
+    "module": "CommonJS",
+    "outDir": "dst",
+    "sourceMap": true,
+    "strict": true,
+    "target": "ES2018",
+    "esModuleInterop": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "tst"
+  ]
+}
