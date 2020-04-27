@@ -7,14 +7,16 @@ Create at least a single Snap Area using BTT and export the Triggers & Settings 
 Modify the following ```index.js``` lines...
 
 ```javascript
-BTTPreset.BTTPresetSnapAreas.push(generate(3840, 2160, 4, 3));
-BTTPreset.BTTPresetSnapAreas.push(generate(3360, 1890, 4, 2));
-BTTPreset.BTTPresetSnapAreas.push(generate(3008, 1692, 3, 2));
+snapAreas(1280, 720);
+snapAreas(1920, 1080);
+snapAreas(2560, 1440);
+snapAreas(3200, 1800);
+snapAreas(3840, 2160);
 ```
 
-Match the monitor sizes and layouts you'd like to use:
+Match your monitor resolutions you'd like to use (check Display Preferences) :
 
-```generate(width, height, rows, columns)```
+```snapAreas(width, height)```
 
 Run with:
 
@@ -22,4 +24,14 @@ Run with:
 npm start
 ```
 
-Output is written to ```Generated.bttpreset``` - import to BTT replacing the existing preset. Done!
+Output is written to ```Generated.bttpreset``` - import to BTT replacing the existing preset.
+
+Use modifier keys to adjust the snap area layout
+
+* Control - 4 x 2 Grid
+* Option - 5 x 3 Grid
+* Command - 6 x 4 Grid
+
+> Using the modifier key in conjuntion with SHIFT will switch to column-only mode.
+
+Done!
