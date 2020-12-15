@@ -6,6 +6,7 @@ const BTTPreset: any = JSON.parse(fs.readFileSync('Default.bttpreset', 'utf8'));
 const BTTPresetSnapAreaTemplate = {
   ...BTTPreset.BTTPresetSnapAreas[0],
 };
+
 BTTPresetSnapAreaTemplate.BTTDisplaySnappedDragpoints = [];
 BTTPresetSnapAreaTemplate.BTTDisplayDisplayedDragpoints = [];
 
@@ -17,7 +18,7 @@ BTTPreset.BTTPresetSnapAreas = [];
 
 function generate(screenWidth: number, screenHeight: number, columns: number, rows: number) {
   const factor = 4;
-  const menuBar = 0; // 23
+  const menuBar = 23;
   const cellWidth = Math.floor(screenWidth / columns);
   const cellHeight = Math.floor((screenHeight - menuBar) / rows);
   const offsetX = Math.floor((screenWidth - Math.floor((cellWidth / factor) * columns)) / 2);
@@ -31,13 +32,13 @@ function generate(screenWidth: number, screenHeight: number, columns: number, ro
       const BTTDisplayDragpoint = JSON.parse(JSON.stringify(BTTDisplayDragpointTemplate));
       BTTDisplayDragpoint.BTTSnapAreaFrame = `{{${offsetX + column * Math.floor(cellWidth / factor)}, ${offsetY + (row * Math.floor(cellHeight / factor))}}, {${Math.floor(cellWidth / factor)}, ${Math.floor(cellHeight / factor)}}}`;
       switch (columns) {
-        case 4:
+        case 3:
           BTTDisplayDragpoint.BTTSnapAreaModifierCTRL = 1;
           break;
-        case 5:
+        case 4:
           BTTDisplayDragpoint.BTTSnapAreaModifierOPT = 1;
           break;
-        case 6:
+        case 5:
           BTTDisplayDragpoint.BTTSnapAreaModifierCMD = 1;
           break;
         default:
@@ -52,13 +53,13 @@ function generate(screenWidth: number, screenHeight: number, columns: number, ro
     const BTTDisplayDragpoint = JSON.parse(JSON.stringify(BTTDisplayDragpointTemplate));
     BTTDisplayDragpoint.BTTSnapAreaFrame = `{{${offsetX + column * Math.floor(cellWidth / factor)}, ${offsetY}}, {${Math.floor(cellWidth / factor)}, ${Math.floor(screenHeight / factor)}}}`; // small one
     switch (columns) {
-      case 4:
+      case 3:
         BTTDisplayDragpoint.BTTSnapAreaModifierCTRL = 1;
         break;
-      case 5:
+      case 4:
         BTTDisplayDragpoint.BTTSnapAreaModifierOPT = 1;
         break;
-      case 6:
+      case 5:
         BTTDisplayDragpoint.BTTSnapAreaModifierCMD = 1;
         break;
       default:
@@ -73,15 +74,15 @@ function generate(screenWidth: number, screenHeight: number, columns: number, ro
 }
 
 function snapAreas(screenWidth: number, screenHeight: number) {
-  for (let columns = 4; columns <= 6; columns += 1) {
+  for (let columns = 3; columns <= 5; columns += 1) {
     switch (columns) {
-      case 4:
+      case 3:
         BTTPreset.BTTPresetSnapAreas.push(generate(screenWidth, screenHeight, columns, 2));
         break;
-      case 5:
+      case 4:
         BTTPreset.BTTPresetSnapAreas.push(generate(screenWidth, screenHeight, columns, 3));
         break;
-      case 6:
+      case 5:
         BTTPreset.BTTPresetSnapAreas.push(generate(screenWidth, screenHeight, columns, 4));
         break;
       default:
@@ -89,10 +90,9 @@ function snapAreas(screenWidth: number, screenHeight: number) {
   }
 }
 
-snapAreas(1280, 720);
-snapAreas(1920, 1080);
-snapAreas(2560, 1440);
-snapAreas(3200, 1800);
-snapAreas(3840, 2160);
+snapAreas(1600, 670);
+snapAreas(2048, 858);
+snapAreas(2560, 1080);
+snapAreas(3440, 1440);
 
 fs.writeFileSync('Generated.bttpreset', JSON.stringify(BTTPreset, null, 2), 'utf8');
