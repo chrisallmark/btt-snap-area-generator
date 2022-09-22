@@ -1,98 +1,126 @@
-import fs from 'fs';
-import { v4 as uuid } from 'uuid';
+import fs from "fs";
+import { v4 as uuid } from "uuid";
+import defaults from "./btt-preset.json";
 
-const BTTPreset: any = JSON.parse(fs.readFileSync('Default.bttpreset', 'utf8'));
-
-const BTTPresetSnapAreaTemplate = {
-  ...BTTPreset.BTTPresetSnapAreas[0],
+type BTTPreset = Omit<typeof defaults, "BTTPresetSnapAreas"> & {
+  BTTPresetSnapAreas: BTTDisplay[];
 };
 
-BTTPresetSnapAreaTemplate.BTTDisplaySnappedDragpoints = [];
-BTTPresetSnapAreaTemplate.BTTDisplayDisplayedDragpoints = [];
-
-const BTTDisplayDragpointTemplate = {
-  ...BTTPreset.BTTPresetSnapAreas[0].BTTDisplaySnappedDragpoints[0],
+type BTTDisplay = {
+  BTTDisplayDisplayedDragpoints: BTTSnapArea[];
+  BTTDisplayID: number;
+  BTTDisplayIsMain: number;
+  BTTDisplayModel: number;
+  BTTDisplayResolution: string;
+  BTTDisplayScreenFrame: string;
+  BTTDisplayScreenSize: string;
+  BTTDisplaySerialNumber: string;
+  BTTDisplaySnappedDragpoints: BTTSnapArea[];
+  BTTDisplayVendorID: number;
 };
 
-BTTPreset.BTTPresetSnapAreas = [];
+type BTTSnapArea = {
+  BTTSnapAreaAnimationDuration: number;
+  BTTSnapAreaPreviewBorderColor: string;
+  BTTSnapAreaColor: string;
+  BTTSnapAreaFrame: string;
+  BTTSnapAreaHighlightColor: string;
+  BTTSnapAreaModifierCMD?: number;
+  BTTSnapAreaModifierCTRL?: number;
+  BTTSnapAreaModifierOPT?: number;
+  BTTSnapAreaModifierSHIFT?: number;
+  BTTSnapAreaPictogramDistanceFromLeft: number;
+  BTTSnapAreaPictogramDistanceFromBottom: number;
+  BTTSnapAreaPictogramSize: number;
+  BTTSnapAreaPreviewFrame: string;
+  BTTSnapAreaBorderWidth: number;
+  BTTSnapAreaCornerRadius: number;
+  BTTSnapAreaUUID: string;
+  BTTSnapAreaShowsForApps: never[];
+};
 
-function generate(screenWidth: number, screenHeight: number, columns: number, rows: number) {
-  const factor = 4;
-  const menuBar = 23;
+const btt: BTTPreset = defaults;
+
+btt.BTTPresetName = "Generated";
+btt.BTTPresetUUID = uuid();
+
+const FACTOR = 6;
+
+const resolution = btt.BTTPresetSnapAreas[0].BTTDisplayResolution.match(/\d+/g);
+if (!resolution || resolution.length !== 2) {
+  throw new Error("Invalid resolution");
+}
+const screenWidth = parseInt(resolution[0]);
+const screenHeight = parseInt(resolution[1]);
+
+const generateSnapAreas = (columns: number, rows: number): BTTSnapArea[] => {
   const cellWidth = Math.floor(screenWidth / columns);
-  const cellHeight = Math.floor((screenHeight - menuBar) / rows);
-  const offsetX = Math.floor((screenWidth - Math.floor((cellWidth / factor) * columns)) / 2);
-  const offsetY = Math.floor((screenHeight - Math.floor((cellHeight / factor) * rows)) / 2);
-  const BTTPresetSnapArea = JSON.parse(JSON.stringify(BTTPresetSnapAreaTemplate));
-  BTTPresetSnapArea.BTTDisplayResolution = `{${screenWidth}, ${screenHeight}}`;
-  BTTPresetSnapArea.BTTDisplayScreenFrame = `{{0, 0}, {${screenWidth}, ${screenHeight}}}`;
+  const cellHeight = Math.floor(screenHeight / rows);
+  const offsetX = Math.floor(
+    (screenWidth - Math.floor((cellWidth / FACTOR) * columns)) / 2
+  );
+  const offsetY = Math.floor(
+    (screenHeight - Math.floor((cellHeight / FACTOR) * rows)) / 2
+  );
 
+  const bttSnapAreas: BTTSnapArea[] = [];
   for (let column = 0; column < columns; column += 1) {
     for (let row = 0; row < rows; row += 1) {
-      const BTTDisplayDragpoint = JSON.parse(JSON.stringify(BTTDisplayDragpointTemplate));
-      BTTDisplayDragpoint.BTTSnapAreaFrame = `{{${offsetX + column * Math.floor(cellWidth / factor)}, ${offsetY + (row * Math.floor(cellHeight / factor))}}, {${Math.floor(cellWidth / factor)}, ${Math.floor(cellHeight / factor)}}}`;
+      const bttSnapArea: BTTSnapArea = {
+        ...btt.BTTPresetSnapAreas[0].BTTDisplayDisplayedDragpoints[0],
+        BTTSnapAreaPreviewFrame: `{{${column * cellWidth}, ${
+          row * cellHeight
+        }}, {${cellWidth}, ${cellHeight}}}`,
+        BTTSnapAreaFrame: `{{${
+          offsetX + column * Math.floor(cellWidth / FACTOR)
+        }, ${offsetY + row * Math.floor(cellHeight / FACTOR)}}, {${Math.floor(
+          cellWidth / FACTOR
+        )}, ${Math.floor(cellHeight / FACTOR)}}}`,
+        BTTSnapAreaUUID: uuid().toUpperCase(),
+      };
       switch (columns) {
         case 3:
-          BTTDisplayDragpoint.BTTSnapAreaModifierCTRL = 1;
+          bttSnapArea.BTTSnapAreaModifierCTRL = 1;
           break;
         case 4:
-          BTTDisplayDragpoint.BTTSnapAreaModifierOPT = 1;
+          bttSnapArea.BTTSnapAreaModifierOPT = 1;
           break;
         case 5:
-          BTTDisplayDragpoint.BTTSnapAreaModifierCMD = 1;
+          bttSnapArea.BTTSnapAreaModifierCMD = 1;
           break;
-        default:
       }
-      BTTDisplayDragpoint.BTTSnapAreaPreviewFrame = `{{${column * cellWidth}, ${(row * cellHeight)}}, {${cellWidth}, ${cellHeight}}}`;
-      BTTDisplayDragpoint.BTTSnapAreaUUID = uuid().toUpperCase();
-      BTTPresetSnapArea.BTTDisplaySnappedDragpoints.push(BTTDisplayDragpoint);
-      BTTPresetSnapArea.BTTDisplayDisplayedDragpoints.push(BTTDisplayDragpoint);
+      if (rows === 3) {
+        bttSnapArea.BTTSnapAreaModifierSHIFT = 1;
+      }
+      bttSnapAreas.push(bttSnapArea);
     }
   }
-  for (let column = 0; column < columns; column += 1) {
-    const BTTDisplayDragpoint = JSON.parse(JSON.stringify(BTTDisplayDragpointTemplate));
-    BTTDisplayDragpoint.BTTSnapAreaFrame = `{{${offsetX + column * Math.floor(cellWidth / factor)}, ${offsetY}}, {${Math.floor(cellWidth / factor)}, ${Math.floor(screenHeight / factor)}}}`; // small one
-    switch (columns) {
-      case 3:
-        BTTDisplayDragpoint.BTTSnapAreaModifierCTRL = 1;
-        break;
-      case 4:
-        BTTDisplayDragpoint.BTTSnapAreaModifierOPT = 1;
-        break;
-      case 5:
-        BTTDisplayDragpoint.BTTSnapAreaModifierCMD = 1;
-        break;
-      default:
-    }
-    BTTDisplayDragpoint.BTTSnapAreaModifierSHIFT = 1;
-    BTTDisplayDragpoint.BTTSnapAreaPreviewFrame = `{{${column * cellWidth}, 0}, {${cellWidth}, ${screenHeight}}}`;
-    BTTDisplayDragpoint.BTTSnapAreaUUID = uuid().toUpperCase();
-    BTTPresetSnapArea.BTTDisplaySnappedDragpoints.push(BTTDisplayDragpoint);
-    BTTPresetSnapArea.BTTDisplayDisplayedDragpoints.push(BTTDisplayDragpoint);
-  }
-  return BTTPresetSnapArea;
+  return bttSnapAreas;
+};
+
+let snapAreas: BTTSnapArea[] = [];
+for (let i = 3; i <= 5; i++) {
+  snapAreas = snapAreas.concat(
+    generateSnapAreas(i, 2),
+    generateSnapAreas(i, 3)
+  );
 }
 
-function snapAreas(screenWidth: number, screenHeight: number) {
-  for (let columns = 3; columns <= 5; columns += 1) {
-    switch (columns) {
-      case 3:
-        BTTPreset.BTTPresetSnapAreas.push(generate(screenWidth, screenHeight, columns, 2));
-        break;
-      case 4:
-        BTTPreset.BTTPresetSnapAreas.push(generate(screenWidth, screenHeight, columns, 3));
-        break;
-      case 5:
-        BTTPreset.BTTPresetSnapAreas.push(generate(screenWidth, screenHeight, columns, 4));
-        break;
-      default:
-    }
-  }
-}
-
-snapAreas(1600, 670);
-snapAreas(2048, 858);
-snapAreas(2560, 1080);
-snapAreas(3440, 1440);
-
-fs.writeFileSync('Generated.bttpreset', JSON.stringify(BTTPreset, null, 2), 'utf8');
+fs.writeFileSync(
+  "Generated.bttpreset",
+  JSON.stringify(
+    {
+      ...btt,
+      BTTPresetSnapAreas: [
+        {
+          ...btt.BTTPresetSnapAreas[0],
+          BTTDisplayDisplayedDragpoints: snapAreas,
+          BTTDisplaySnappedDragpoints: snapAreas,
+        },
+      ],
+    },
+    null,
+    2
+  ),
+  "utf8"
+);
