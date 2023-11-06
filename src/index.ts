@@ -45,7 +45,7 @@ btt.BTTPresetName = "Generated";
 btt.BTTPresetUUID = uuid();
 
 const FACTOR = 2;
-const MENU_BAR = 42;
+const MENU_BAR = 24;
 
 const generateSnapAreas = (bttDisplay: BTTDisplay): BTTSnapArea[] => {
   const resolution = bttDisplay.BTTDisplayResolution.match(/\d+/g);
